@@ -22,13 +22,15 @@ from dpm_solver_pytorch import NoiseScheduleVP, model_wrapper, DPM_Solver
 
 
 class LayoutToImageGenerator:
-    def __init__(self, config_file, pretrained_model_path=None):
+    def __init__(self, config_file, pretrained_model_path=None, device="cuda"):
         cfg = OmegaConf.load(config_file)
         if pretrained_model_path is not None:
             cfg.sample.pretrained_model_path = pretrained_model_path
         cfg.config_file = config_file
         cfg.sample.timestep_respacing[0] = "25"
         cfg.sample.sample_method = "dpm_solver"
+
+        self.device = torch.device(device)
         self.cfg, self.model_fn, self.noise_schedule = self.init(cfg)
 
     def sample(self, bboxes):
@@ -45,7 +47,7 @@ class LayoutToImageGenerator:
 
         print("creating model...")
         model = build_model(cfg)
-        model.cuda()
+        model.to(self.device)
         print(model)
 
         if cfg.sample.pretrained_model_path:
@@ -60,7 +62,7 @@ class LayoutToImageGenerator:
 
                 model.load_state_dict(checkpoint, strict=False)
 
-        model.cuda()
+        model.to(self.device)
         if cfg.sample.use_fp16:
             model.convert_to_fp16()
         model.eval()
@@ -167,7 +169,7 @@ if __name__ == "__main__":
             "/Users/ducanhnguyen/Desktop/deep_learning_projects/minLayout/pretrained_models/COCO-stuff_128x128_LayoutDiffusion_large_ema_0300000.pt"
         )
 
-        L2I_generator = LayoutToImageGenerator(config_file, pretrained_model_path)
+        L2I_generator = LayoutToImageGenerator(config_file, pretrained_model_path, device="mps") # TODO: device="cuda"
         L2I_generator.sample(custom_layout_dict)
 
     test_systhesize_initial_image()
