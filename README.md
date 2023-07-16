@@ -1,4 +1,4 @@
-# CrowRender
+# CrowdRender
 Generate image from layout with multiple bounding boxes (e.g., 20-100 boxes)
 
 ## Methodology
