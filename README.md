@@ -4,14 +4,17 @@ Generate image from layout with multiple bounding boxes (e.g., 20-100 boxes)
 - *Output*: An image with N x objects at the specified locations
 - Constraint: use pretrained DMs only
 
-## Methodology 1 (Very few times it works!)
+## Notebook
+
+[[Colab Demo ![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1zlSkMwG23-JAoEun4IDwKqUP-wJdLrbo?usp=sharing)]
+## Method 1 (Very few times it works!)
 **Updated 1:** It works! More tuning hyperparas (e.g., `guidance_scale`) probably increases qualitative and quantitative metrics of layout-to-image task.
 
 **Updated 2:** It failed too! The behavior of the inpainting model is strange; it sometimes inpaints the object but also erases the right object.
 
-- **Step 1: Create a background image**
+- **Step 1: Create a context image**
 
-- **Step 2: Iteratively inpaint N bounding boxes**
+- **Step 2: Iteratively inpaint N x objext (based on their bounding boxes) into the previous context image**
 
 - **(Optional) Step 3: Outpaint the above image**Consstant
 
@@ -27,7 +30,7 @@ Here is the full for-loop inpainting including the masks, the input context imag
 
 
 
-## Methodology 2 (Failed)
+## Method 2 (Failed)
 Updated: This method is failed, because the diffusion model at step 2 doesn't generate a great image as a strong prior for another diffusion model at step 3.
 
 - **(Optional) Step 1: Synthesize a proper layout**
