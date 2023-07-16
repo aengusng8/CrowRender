@@ -2,7 +2,7 @@
 Generate image from layout with multiple bounding boxes (e.g., 20-100 boxes)
 - *Input*: N x categories (optional: and a set of their bounding boxes)
 - *Output*: An image with N x objects at the specified locations
-- Constraint: use pretrained DMs only
+- Constraint: use a series of pretrained DMs only, not training
 
 ## Notebook
 
