@@ -9,7 +9,7 @@ Generate image from layout with multiple bounding boxes (e.g., 20-100 boxes)
 - *Input*: N x categories (optional: and a set of their bounding boxes)
 - *Output*: Set of N x bounding boxes with a plausible arrangement
 - *Purpose*: Instead of manually writing out 20-100 bounding boxes, this step aims to synthesize a plausible arrangement of element bounding boxes, considering optional constraints such as the type or position of a specific element.
-- *Usage*: a layout generator (e.g. LayoutDM) with C->P+S task or refinement task
+- *Usage*: a layout generator (e.g. LayoutDM) with `C->P+S` task or `refinement` task
   
 **Step 2: Synthesize a image with K (=9) bounding boxes at boudary**
   - *Input*: K x bounding boxes (a subset of N x bounding boxes)
