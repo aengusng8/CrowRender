@@ -26,5 +26,7 @@ Updated: This method is failed, because the diffusion model at step 2 doesn't ge
 
 ## Methodology 2
 Step 1: Create a background image
+
 Step 2: Iteratively inpaint N bounding boxes
+
 (Optional) Step 3: Outpaint the above image
