@@ -11,16 +11,14 @@ def sample(datum, text):
     # Step 1: Create a context image
     context_pipe = StableDiffusionPipeline.from_pretrained(
         "stabilityai/stable-diffusion-2-1-base"
-    )
-    context_pipe = context_pipe.to(DEVICE)
+    ).to(DEVICE)
     context_img = context_pipe(text).images[0]
     results["step_1"] = dict(context_img=context_img)
 
     # Step 2: Inpaint N bounding boxes
     inpaint_pipe = StableDiffusionInpaintPipeline.from_pretrained(
         "stabilityai/stable-diffusion-2-inpainting"
-    )
-     = ininpaint_pipepaint_pipe.to(DEVICE)
+    ).to(DEVICE)
     results["step_2"] = iterative_inpainting(
         inpaint_pipe, datum, text, results["context_image"]
     )

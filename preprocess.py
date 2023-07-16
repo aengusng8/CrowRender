@@ -1,20 +1,4 @@
 import torch
-from torch import autocast
-from torch.utils.data import Dataset
-import json
-import pandas as pd
-from PIL import Image
-from PIL import ImageDraw
-from pathlib import Path
-import numpy as np
-import random
-import copy
-from einops import repeat
-
-from einops import rearrange
-from tqdm import tqdm, trange
-from contextlib import contextmanager, nullcontext
-from pytorch_lightning import seed_everything
 
 
 def encode_from_custom_annotation(custom_annotations, size=512):
@@ -48,3 +32,164 @@ def encode_from_custom_annotation(custom_annotations, size=512):
     )
 
     return out
+
+
+def encode_scene(
+    obj_list, H=320, W=320, src_bbox_format="xywh", tgt_bbox_format="xyxy"
+):
+    """Encode scene into text and bounding boxes
+    Args:
+        obj_list: list of dicts
+            Each dict has keys:
+
+                'color': str
+                'material': str
+                'shape': str
+                or
+                'caption': str
+
+                and
+
+                'bbox': list of 4 floats (unnormalized)
+                    [x0, y0, x1, y1] or [x0, y0, w, h]
+    """
+    box_captions = []
+    for obj in obj_list:
+        if "caption" in obj:
+            box_caption = obj["caption"]
+        else:
+            box_caption = f"{obj['color']} {obj['material']} {obj['shape']}"
+        box_captions += [box_caption]
+
+    assert src_bbox_format in [
+        "xywh",
+        "xyxy",
+    ], f"src_bbox_format must be 'xywh' or 'xyxy', not {src_bbox_format}"
+    assert tgt_bbox_format in [
+        "xywh",
+        "xyxy",
+    ], f"tgt_bbox_format must be 'xywh' or 'xyxy', not {tgt_bbox_format}"
+
+    boxes_unnormalized = []
+    boxes_normalized = []
+    for obj in obj_list:
+        if src_bbox_format == "xywh":
+            x0, y0, w, h = obj["bbox"]
+            x1 = x0 + w
+            y1 = y0 + h
+        elif src_bbox_format == "xyxy":
+            x0, y0, x1, y1 = obj["bbox"]
+            w = x1 - x0
+            h = y1 - y0
+        assert x1 > x0, f"x1={x1} <= x0={x0}"
+        assert y1 > y0, f"y1={y1} <= y0={y0}"
+        assert x1 <= W, f"x1={x1} > W={W}"
+        assert y1 <= H, f"y1={y1} > H={H}"
+
+        if tgt_bbox_format == "xywh":
+            bbox_unnormalized = [x0, y0, w, h]
+            bbox_normalized = [x0 / W, y0 / H, w / W, h / H]
+
+        elif tgt_bbox_format == "xyxy":
+            bbox_unnormalized = [x0, y0, x1, y1]
+            bbox_normalized = [x0 / W, y0 / H, x1 / W, y1 / H]
+
+        boxes_unnormalized += [bbox_unnormalized]
+        boxes_normalized += [bbox_normalized]
+
+    assert len(box_captions) == len(
+        boxes_normalized
+    ), f"len(box_captions)={len(box_captions)} != len(boxes_normalized)={len(boxes_normalized)}"
+
+    text = prepare_text(box_captions, boxes_normalized)
+
+    out = {}
+    out["text"] = text
+    out["box_captions"] = box_captions
+    out["boxes_normalized"] = boxes_normalized
+    out["boxes_unnormalized"] = boxes_unnormalized
+
+    return out
+
+
+def prepare_text(
+    box_captions=[],
+    box_normalized=[],
+    global_caption=None,
+    # image_resolution=512,
+    text_reco=True,
+    num_bins=1000,
+    # tokenizer=None
+    spatial_text=False,
+):
+    # Describe box shape in text
+    if spatial_text:
+        # box_descriptions = []
+        # for box_sample_ii in range(len(box_captions)):
+        #     box = box_normalized[box_sample_ii]
+        #     box_caption = box_captions[box_sample_ii]
+        #     box_description = prepare_spatial_description(box, box_caption)
+        #     box_descriptions.append(box_description)
+        # text = " ".join(box_descriptions)
+        raise NotImplementedError
+
+    # Describe box
+    else:
+        box_captions_with_coords = []
+
+        if isinstance(box_normalized, torch.Tensor):
+            box_normalized = box_normalized.tolist()
+
+        for box_sample_ii in range(len(box_captions)):
+            box = box_normalized[box_sample_ii]
+            box_caption = box_captions[box_sample_ii]
+
+            # print(box_caption)
+
+            # quantize into bins
+            quant_x0 = int(round((box[0] * (num_bins - 1))))
+            quant_y0 = int(round((box[1] * (num_bins - 1))))
+            quant_x1 = int(round((box[2] * (num_bins - 1))))
+            quant_y1 = int(round((box[3] * (num_bins - 1))))
+
+            if text_reco:
+                # ReCo format
+                # Add SOS/EOS before/after regional caption
+                SOS_token = "<|startoftext|>"
+                EOS_token = "<|endoftext|>"
+                box_captions_with_coords += [
+                    f"<bin{str(quant_x0).zfill(3)}>",
+                    f"<bin{str(quant_y0).zfill(3)}>",
+                    f"<bin{str(quant_x1).zfill(3)}>",
+                    f"<bin{str(quant_y1).zfill(3)}>",
+                    SOS_token,
+                    box_caption,
+                    EOS_token,
+                ]
+
+            else:
+                box_captions_with_coords += [
+                    f"<bin{str(quant_x0).zfill(3)}>",
+                    f"<bin{str(quant_y0).zfill(3)}>",
+                    f"<bin{str(quant_x1).zfill(3)}>",
+                    f"<bin{str(quant_y1).zfill(3)}>",
+                    box_caption,
+                ]
+
+        text = " ".join(box_captions_with_coords)
+
+    if global_caption is not None:
+        # Global caption
+        if text_reco:
+            # ReCo format
+            # Add SOS/EOS before/after regional caption
+            # SOS_token = '<|startoftext|>'
+            EOS_token = "<|endoftext|>"
+            # global_caption = f"{SOS_token} {global_caption} {EOS_token}"
+
+            # SOS token will be automatically added
+            global_caption = f"{global_caption} {EOS_token}"
+
+        text = f"{global_caption} {text}"
+
+    return text
