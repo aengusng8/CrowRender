@@ -3,7 +3,7 @@ Generate image from layout with multiple bounding boxes (e.g., 20-100 boxes)
 - *Input*: N x categories (optional: and a set of their bounding boxes)
 - *Output*: An image with N x objects at the specified locations
 
-## Methodology 1
+## Methodology 1 (Failed)
 Updated: This method is failed, because the diffusion model at step 2 doesn't generate a great image as a strong prior for another diffusion model at step 3.
 
 **(Optional) Step 1: Synthesize a proper layout**
@@ -24,9 +24,11 @@ Updated: This method is failed, because the diffusion model at step 2 doesn't ge
   - *Purpose*: Inpaint the remaining (N - K) bounding boxes into the image in an iterative manner. This step ensures the completion of the overall image by filling in the missing elements within the plausible context and background.
   - *Usage*: a inpainting model (e.g. Stable Diffusion)
 
-## Methodology 2
-Step 1: Create a background image
+## Methodology 2 (It works!)
+**Updated:** It works! More tuning hyperparas (e.g., `guidance_scale`) probably increases qualitative and quantitative metrics of layout-to-image task.
 
-Step 2: Iteratively inpaint N bounding boxes
+**Step 1: Create a background image**
 
-(Optional) Step 3: Outpaint the above image
+**Step 2: Iteratively inpaint N bounding boxes**
+
+**(Optional) Step 3: Outpaint the above image**
