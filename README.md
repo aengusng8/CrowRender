@@ -2,7 +2,7 @@
 Generate image from layout with multiple bounding boxes (e.g., 20-100 boxes)
 - *Input*: N x categories (optional: and a set of their bounding boxes)
 - *Output*: An image with N x objects at the specified locations
-- Constraint: use a series of pretrained DMs only, not training
+- *Constraint*: use a series of pretrained DMs only, not training
 
 ## Notebook
 
@@ -16,7 +16,7 @@ Generate image from layout with multiple bounding boxes (e.g., 20-100 boxes)
 
 - **Step 2: Iteratively inpaint N x objext (based on their bounding boxes) into the previous context image**
 
-- **(Optional) Step 3: Outpaint the above image**Consstant
+- **(Optional) Step 3: Outpaint the above image**
 
 Here is the image generate at interation 8. It really did inpaint!
 
