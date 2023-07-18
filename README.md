@@ -22,7 +22,7 @@ Here is the image generate at interation 8. It really did inpaint!
 
 ![iter8__notated_generated_images](https://github.com/aengusng8/CrowdRender/assets/67547213/bd515fff-6c16-4eca-b30c-1fbca6d4a31d)
 
-Here is the full for-loop inpainting including the masks, the input context images, the generated images, respectively.
+Here is the full for-loop inpainting including the masks, the input context images, and the generated images, respectively.
 ![mask_imgs](https://github.com/aengusng8/CrowdRender/assets/67547213/dc508930-3c3f-4070-b73c-d5e5d1843ca4)
 ![notated_context_images](https://github.com/aengusng8/CrowdRender/assets/67547213/3b329d7f-d627-4d38-8996-b9e08bef9de5)
 ![notated_generated_images](https://github.com/aengusng8/CrowdRender/assets/67547213/28eac1c0-5850-4e1a-9b97-dd7b5ddbfefd)
